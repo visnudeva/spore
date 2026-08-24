@@ -1,8 +1,18 @@
-# spore
+<table>
+  <tr>
+    <td>
+      <strong>Spore, a terminal web radio and local music player with FFT visualizers.
+<br>
+    </td>
+    <td>
+  <img src="Logo.png" alt="spore" width="220">
+</td>
+  </tr>
+</table>
 
 [![spore](https://github.com/visnudeva/spore/blob/main/spore.png)](https://github.com/visnudeva/spore)
 
-Terminal web radio and local music player with FFT visualizers.
+
 
 Built from the best of [tera](https://github.com/shinokada/tera) (radio browsing) and [cliamp](https://github.com/bjarneo/cliamp) (audio engine + visualizers).
 
