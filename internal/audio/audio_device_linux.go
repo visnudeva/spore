@@ -117,15 +117,17 @@ func SwitchAudioDevice(deviceName string) error {
 	return nil
 }
 
-// matchCliamp checks if a sink-input's properties belong to cliamp.
+// matchCliamp checks if a sink-input's properties belong to spore (or legacy cliamp).
 func matchCliamp(props map[string]string, pidStr string, idx int) int {
 	if props["application.process.id"] == pidStr {
 		return idx
 	}
-	if strings.EqualFold(props["application.process.binary"], "cliamp") {
+	bin := strings.ToLower(props["application.process.binary"])
+	if bin == "spore" || bin == "cliamp" {
 		return idx
 	}
-	if strings.Contains(strings.ToLower(props["application.name"]), "cliamp") {
+	name := strings.ToLower(props["application.name"])
+	if strings.Contains(name, "spore") || strings.Contains(name, "cliamp") {
 		return idx
 	}
 	return -1

@@ -77,7 +77,11 @@ func New(q Quality) (*Player, error) {
 			q.SampleRate, q.BufferMs, q.ResampleQuality)
 	}
 	sr := beep.SampleRate(q.SampleRate)
-	if err := speaker.Init(sr, sr.N(time.Duration(q.BufferMs)*time.Millisecond)); err != nil {
+	// Route ALSA "default" through PipeWire/Pulse for this process so spore
+	// does not open the hardware device exclusively (muting other apps).
+	if err := withSharedALSA(func() error {
+		return speaker.Init(sr, sr.N(time.Duration(q.BufferMs)*time.Millisecond))
+	}); err != nil {
 		return nil, fmt.Errorf("speaker init: %w", err)
 	}
 	bitDepth := q.BitDepth
