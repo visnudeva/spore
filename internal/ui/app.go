@@ -80,7 +80,7 @@ func New() (*App, error) {
 	}
 
 	v := vis.NewVisualizer(float64(q.SampleRate))
-	v.Mode = vis.VisBars
+	v.Mode = vis.VisBarsDot
 	if sess.VisMode != "" {
 		if mode, ok := vis.StringToVisModeExact(sess.VisMode); ok {
 			v.SetMode(mode)
@@ -314,12 +314,14 @@ func (a *App) View() tea.View {
 	}
 
 	var ui strings.Builder
+	ui.WriteString(dimStyle.Render("  spore – web radio & local player"))
+	ui.WriteByte('\n')
 	ui.WriteString(a.renderTabBar())
 	ui.WriteByte('\n')
 	ui.WriteString(a.renderNowPlaying())
 	ui.WriteByte('\n')
 
-	contentHeight := h - 5
+	contentHeight := h - 6
 	if contentHeight < 4 {
 		contentHeight = 4
 	}
@@ -403,7 +405,7 @@ func (a *App) renderStatusBar() string {
 	if a.statusMsg != "" && time.Now().Before(a.statusExpiry) {
 		return errorStyle.Render("  " + a.statusMsg)
 	}
-	return dimStyle.Render("  spore – web radio & local player")
+	return ""
 }
 
 // PlayStation starts playing a radio station.

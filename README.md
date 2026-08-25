@@ -20,7 +20,7 @@ Built from the best of [tera](https://github.com/shinokada/tera) (radio browsing
 
 - **Web radio** – browse top stations, search by name, explore tags ([radio-browser.info](https://www.radio-browser.info/))
 - **Local files** – browse and play MP3, FLAC, OGG, WAV, M4A, Opus, and more
-- **FFT visualizer** – 28+ modes (bars, wave, flame, matrix, rain, stereo meters, …)
+- **FFT visualizer** – 18 modes (starfield, plasma, lava, orbit, iris, …)
 - **Favorites** – save stations and play them later
 - **Session restore** – resumes the last radio station and visualizer on launch
 - **Pure Go audio** – no mpv dependency; uses [beep](https://github.com/gopxl/beep) (+ ffmpeg for some codecs)

@@ -42,34 +42,24 @@ var legacySpectrumEdges = [DefaultSpectrumBands + 1]float64{
 type VisMode int
 
 const (
-	VisBars        VisMode = iota // smooth fractional blocks
-	VisBarsDot                    // bars with braille dot stipple
-	VisRain                       // falling rain droplets within bar shapes
-	VisBarsOutline                // top-edge outline of bars
+	VisBarsDot     VisMode = iota // bars with braille dot stipple
 	VisBricks                     // solid bricks with gaps
-	VisColumns                    // many thin columns
 	VisClassicPeak                // classic falling peak caps over thin columns
-	VisWave                       // braille waveform oscilloscope
 	VisScatter                    // braille particle sparkle
 	VisFlame                      // braille rising flame tendrils
-	VisRetro                      // 80s synthwave perspective grid with wave
-	VisPulse                      // braille pulsating circle
-	VisMatrix                     // falling matrix rain characters
-	VisBinary                     // streaming binary 0s and 1s
-	VisSakura                     // falling cherry blossom petals
-	VisFirework                   // exploding firework bursts
-	VisBubbles                    // rising hollow ring bubbles
-	VisTerrain                    // scrolling side-view mountain range
-	VisScope                      // Lissajous XY oscilloscope
-	VisHeartbeat                  // ECG pulse monitor trace
 	VisButterfly                  // mirrored Rorschach spectrum
-	VisAscii                      // dense shade-block columns (website style)
-	VisFirefly                    // firefly meadow at dusk
-	VisMosaic                     // static heatmap of flickering tiles
-	VisSand                       // falling-sand cellular automaton
-	VisGeyser                     // bass-driven particle fountain
 	VisClassicLED                 // Winamp 2.9 LED matrix with falling peak caps
 	VisStereo                     // stereo L/R horizontal LED peak meters
+	VisStarfield                  // flying star warp field
+	VisPlasma                     // classic sine plasma field
+	VisRipple                     // expanding water ripples
+	VisKaleido                    // mirrored kaleidoscope sectors
+	VisBloom                      // soft expanding bloom rings
+	VisPrism                      // angled spectral light shards
+	VisIris                       // dilating eye with textured iris
+	VisRibbon                     // twisting 3D spectrum ribbon
+	VisLava                       // rising lava-lamp blobs
+	VisOrbit                      // celestial bodies in orbit
 	VisNone                       // hidden — no visualizer
 	VisCount                      // sentinel for cycling
 )
@@ -104,33 +94,6 @@ func visBandWidth(totalBands, b int) int {
 		return base + 1
 	}
 	return base
-}
-
-// interpolateBandColumns builds per-column levels by interpolating between neighboring bands.
-func interpolateBandColumns(bands []float64, bandCols []int) []float64 {
-	totalCols := 0
-	for _, width := range bandCols {
-		totalCols += width
-	}
-
-	cols := make([]float64, totalCols)
-	offset := 0
-	for b, level := range bands {
-		width := bandCols[b]
-		if width <= 0 {
-			continue
-		}
-		nextLevel := level
-		if b+1 < len(bands) {
-			nextLevel = bands[b+1]
-		}
-		for c := range width {
-			t := float64(c) / float64(width)
-			cols[offset+c] = level*(1-t) + nextLevel*t
-		}
-		offset += width
-	}
-	return cols
 }
 
 func sampleBandLinear(bands []float64, pos float64) float64 {
@@ -455,35 +418,25 @@ func (v *Visualizer) CycleMode() {
 // visModes is the single source of truth for all visualizer modes.
 // To add a new mode: add a const, add one line here, create a vis_*.go file.
 var visModes = [VisCount]visEntry{
-	VisBars:        {"Bars", newFastRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), TickAnim, (*Visualizer).renderBars)},
 	VisBarsDot:     {"BarsDot", newFastRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), TickAnim, (*Visualizer).renderBarsDot)},
-	VisRain:        {"Rain", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderRain)},
-	VisBarsOutline: {"BarsOutline", newFastRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), TickAnim, (*Visualizer).renderBarsOutline)},
 	VisBricks:      {"Bricks", newFastRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), TickAnim, (*Visualizer).renderBricks)},
-	VisColumns:     {"Columns", newFastRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), TickAnim, (*Visualizer).renderColumns)},
 	VisClassicPeak: {"ClassicPeak", newClassicPeakDriver},
-	VisWave:        {"Wave", newFastRenderOnlyDriver(spectrumAnalysisSpec(0), TickWave, func(v *Visualizer, _ []float64) string { return v.renderWave() })},
 	VisScatter:     {"Scatter", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderScatter)},
 	VisFlame:       {"Flame", newFlameDriver},
-	VisRetro:       {"Retro", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderRetro)},
-	VisPulse:       {"Pulse", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderPulse)},
-	VisMatrix:      {"Matrix", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderMatrix)},
-	VisBinary:      {"Binary", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderBinary)},
-	VisSakura:      {"Sakura", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderSakura)},
-	VisFirework:    {"Firework", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderFirework)},
-	VisBubbles:     {"Bubbles", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderBubbles)},
-	VisTerrain:     {"Terrain", newTerrainDriver},
-	VisScope:       {"Scope", newFastRenderOnlyDriver(spectrumAnalysisSpec(0), TickWave, func(v *Visualizer, _ []float64) string { return v.renderScope() })},
-	VisHeartbeat:   {"Heartbeat", newFastRenderOnlyDriver(spectrumAnalysisSpec(0), TickWave, func(v *Visualizer, _ []float64) string { return v.renderHeartbeat() })},
 	VisButterfly:   {"Butterfly", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderButterfly)},
-	VisAscii:       {"Ascii", newFastRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), TickAnim, (*Visualizer).renderAscii)},
-	VisFirefly:     {"Firefly", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderFirefly)},
-	VisMosaic:      {"Mosaic", newMosaicDriver},
-	VisSand:        {"Sand", newSandDriver},
-	VisGeyser:      {"Geyser", newGeyserDriver},
 	VisClassicLED:  {"ClassicLED", newClassicLEDDriver},
 	VisStereo:      {"Stereo", newStereoDriver},
-	VisNone:        {"None", newNoOpDriver},
+	VisStarfield:   {"Starfield", newStarfieldDriver},
+	VisPlasma:      {"Plasma", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderPlasma)},
+	VisRipple:  {"Ripple", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderRipple)},
+	VisKaleido: {"Kaleido", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderKaleido)},
+	VisBloom:   {"Bloom", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderBloom)},
+	VisPrism:   {"Prism", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderPrism)},
+	VisIris:    {"Iris", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderIris)},
+	VisRibbon:  {"Ribbon", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderRibbon)},
+	VisLava:    {"Lava", newLavaDriver},
+	VisOrbit:   {"Orbit", newRenderOnlyDriver(spectrumAnalysisSpec(DefaultSpectrumBands), (*Visualizer).renderOrbit)},
+	VisNone:    {"None", newNoOpDriver},
 }
 
 var visNameMap map[string]VisMode
@@ -1208,7 +1161,7 @@ func specWrap(rowBottom float64, body string) string {
 // flushStyleRun appends the accumulated run bytes to sb wrapped in the cached
 // ANSI sequences for the given tag, then resets run. Tag -1 writes unstyled.
 // Streaming via the pre-extracted prefix/suffix strings avoids allocating a
-// fresh lipgloss.Render result on every flush (the hot path for Matrix/Pulse).
+// fresh lipgloss.Render result on every flush (the hot path for Pulse and friends).
 func flushStyleRun(sb *strings.Builder, run *strings.Builder, tag int) {
 	if run.Len() == 0 {
 		return
