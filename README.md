@@ -53,12 +53,17 @@ go build -o spore ./cmd/spore
 | `v` / `V` | Cycle / toggle visualizer |
 | `/` | New radio search |
 | `f` | Favorite |
-| `d` | Remove favorite |
+| `r` | Remove favorite (Favorites tab) |
 | `q` | Quit |
 
 ## Config
 
 Favorites, history, and session state (`session.json`) live in `~/.config/spore/`.
+
+On first launch (no `favorites.json` yet), spore seeds a few ambient defaults:
+SomaFM Groove Salad Classic, SomaFM Drone Zone, Echoes of Bluemars,
+Echoes of Bluemars Cryosleep, and Ambient Sleeping Pill. Clearing the list later
+is kept — defaults are not re-added.
 
 On launch, spore restores the last visualizer mode and auto-plays the last radio station. If `~/.config/spore` is missing but `~/.config/wavr` exists, that directory is migrated once.
 

@@ -29,6 +29,14 @@ var (
 		{"q", "quit"},
 	}
 
+	favKeys = []keyHint{
+		{"enter", "play selected"},
+		{"↑↓", "navigate"},
+		{"r", "remove favorite"},
+		{"tab", "switch screen"},
+		{"q", "quit"},
+	}
+
 	localKeys = []keyHint{
 		{"enter", "open/play"},
 		{"backspace", "go up"},

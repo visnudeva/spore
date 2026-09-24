@@ -48,7 +48,7 @@ func (m *FavModel) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 				URL:         s.URL,
 			})
 		}
-	case "d", "delete":
+	case "r", "delete":
 		if m.cursor < len(favs) {
 			m.app.favorites = storage.RemoveFavorite(m.app.favorites, favs[m.cursor].UUID)
 			go storage.SaveFavorites(m.app.favorites)
@@ -63,7 +63,7 @@ func (m *FavModel) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 func (m *FavModel) view() string {
 	var sb strings.Builder
 	sb.WriteString(headerStyle.Render(" Favorites") + "\n")
-	sb.WriteString(dimStyle.Render("  [enter: play  d: remove  up/down navigate]\n"))
+	sb.WriteString(dimStyle.Render("  [enter: play  r: remove  up/down navigate]\n"))
 	favs := m.app.favorites
 	if len(favs) == 0 {
 		sb.WriteString(dimStyle.Render("\n  No favorites yet.\n  Press f while browsing radio to add stations.\n"))

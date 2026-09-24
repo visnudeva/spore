@@ -98,10 +98,18 @@ func favoritesPath() (string, error) {
 }
 
 // LoadFavorites returns the saved favorite stations.
+// When favorites.json is missing (first launch), default stations are written once.
 func LoadFavorites() ([]FavoriteStation, error) {
 	path, err := favoritesPath()
 	if err != nil {
 		return nil, err
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		defaults := DefaultFavorites()
+		if saveErr := SaveFavorites(defaults); saveErr != nil {
+			return defaults, nil
+		}
+		return defaults, nil
 	}
 	var f favorites
 	if err := readJSON(path, &f); err != nil {
