@@ -43,11 +43,11 @@ type App struct {
 	isPlaying   bool
 	isPaused    bool
 
-	radioScreen     RadioModel
-	localScreen     LocalModel
-	favScreen       FavModel
-	statusMsg       string
-	statusExpiry    time.Time
+	radioScreen  RadioModel
+	localScreen  LocalModel
+	favScreen    FavModel
+	statusMsg    string
+	statusExpiry time.Time
 
 	favorites []storage.FavoriteStation
 	history   []storage.HistoryEntry
@@ -362,6 +362,9 @@ var (
 	dimStyle         = lipgloss.NewStyle().Foreground(lipgloss.ANSIColor(8))
 	errorStyle       = lipgloss.NewStyle().Foreground(lipgloss.ANSIColor(9))
 	greenStyle       = lipgloss.NewStyle().Foreground(lipgloss.ANSIColor(10))
+	// playingStyle stays spore green (#1fa86a) so the current track
+	// stays readable when a desktop theme recolors titles and headers.
+	playingStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#1fa86a")).Bold(true)
 )
 
 func (a *App) renderTabBar() string {
@@ -383,20 +386,20 @@ func (a *App) renderNowPlaying() string {
 		return dimStyle.Render("  Not playing")
 	}
 
-	state := " > "
+	label := "playing"
 	if a.isPaused {
-		state = " || "
+		label = "paused"
 	}
 
 	vol := a.player.Volume()
 	volStr := fmt.Sprintf("vol: %+.0fdB", vol)
 
-	title := a.nowPlaying
+	name := a.nowPlaying
 	if a.streamTitle != "" && a.streamTitle != a.nowPlaying {
-		title = a.nowPlaying + "  " + dimStyle.Render("~ "+a.streamTitle)
+		name += "  ~ " + a.streamTitle
 	}
 
-	line1 := greenStyle.Render(state) + headerStyle.Render(title)
+	line1 := playingStyle.Render("  " + label + "  " + name)
 	line2 := dimStyle.Render("  " + volStr + "  vis: " + a.visualizer.ModeName() + "  [space: pause  s: stop  +/-: vol  v: vis]")
 	return line1 + "\n" + line2
 }
