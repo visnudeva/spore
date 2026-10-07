@@ -62,6 +62,9 @@ type Player struct {
 
 	streamMetaResolver StreamMetadataResolver // optional: API-based now-playing for streams without ICY
 	metaCancel         context.CancelFunc     // cancels the active metadata poller; guarded by mu
+
+	playGen      atomic.Uint64 // bumps on a new play or stop; live reconnect watches one generation
+	reconnecting atomic.Bool   // true while a dropped live station is being opened again
 }
 
 // StreamMetadataResolver matches a stream URL to a now-playing fetcher for
@@ -174,8 +177,28 @@ func (p *Player) PlayYTDL(pageURL string, knownDuration time.Duration) error {
 // On the first call it builds the long-lived EQ → volume → tap → ctrl chain.
 // Subsequent calls swap only the track source via the gapless streamer.
 func (p *Player) playPipeline(tp *trackPipeline) error {
+	return p.commitPlayback(tp, 0, true)
+}
+
+// commitPlayback installs tp as the current track.
+// A user play (bump) starts a new generation and, for a live station, a
+// reconnect watcher. A reconnect (bump false) keeps that generation and is
+// discarded if playback was paused, stopped, or replaced.
+func (p *Player) commitPlayback(tp *trackPipeline, gen uint64, bump bool) error {
 	p.resumeSpeaker()
 	p.lifecycleMu.Lock()
+
+	if bump {
+		gen = p.playGen.Add(1)
+		p.reconnecting.Store(false)
+	} else if p.playGen.Load() != gen || !p.playing.Load() || p.paused.Load() {
+		p.lifecycleMu.Unlock()
+		go tp.close()
+		if p.playGen.Load() != gen || !p.playing.Load() {
+			return errPlaybackMoved
+		}
+		return errPlaybackPaused
+	}
 
 	// Collect old pipelines to close after releasing locks.
 	var oldCurrent, oldNext *trackPipeline
@@ -244,6 +267,9 @@ func (p *Player) playPipeline(tp *trackPipeline) error {
 	// Close old resources asynchronously to avoid blocking the caller
 	// (UI thread) on slow Close() operations (ffmpeg wait, HTTP teardown).
 	go closePipelines(oldCurrent, oldNext)
+	if bump && streamShouldReconnect(tp) {
+		go p.watchLive(tp.path, gen)
+	}
 	return nil
 }
 
@@ -336,6 +362,8 @@ func (p *Player) TogglePause() {
 // silence. Resume is called automatically on the next Play().
 func (p *Player) Stop() {
 	p.lifecycleMu.Lock()
+	p.playGen.Add(1)
+	p.reconnecting.Store(false)
 	p.mu.Lock()
 	active := p.current
 	p.mu.Unlock()

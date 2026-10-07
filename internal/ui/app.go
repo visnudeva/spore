@@ -38,10 +38,11 @@ type App struct {
 	visualizer *vis.Visualizer
 	visEnabled bool
 
-	nowPlaying  string
-	streamTitle string
-	isPlaying   bool
-	isPaused    bool
+	nowPlaying   string
+	streamTitle  string
+	isPlaying    bool
+	isPaused     bool
+	reconnecting bool
 
 	radioScreen  RadioModel
 	localScreen  LocalModel
@@ -173,6 +174,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		a.isPlaying = a.player.IsPlaying()
 		a.isPaused = a.player.IsPaused()
+		a.reconnecting = a.player.Reconnecting()
 		if t := a.player.StreamTitle(); t != "" && t != a.streamTitle {
 			a.streamTitle = t
 		}
@@ -387,7 +389,9 @@ func (a *App) renderNowPlaying() string {
 	}
 
 	label := "playing"
-	if a.isPaused {
+	if a.reconnecting {
+		label = "reconnecting"
+	} else if a.isPaused {
 		label = "paused"
 	}
 

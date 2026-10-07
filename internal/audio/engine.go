@@ -54,6 +54,7 @@ type Engine interface {
 	EQBands() [10]float64
 
 	// Stream info
+	Reconnecting() bool
 	StreamErr() error
 	StreamTitle() string
 	StreamBytes() (downloaded, total int64)
